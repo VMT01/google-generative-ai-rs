@@ -1,4 +1,4 @@
-pub mod constants;
-pub mod generative_models;
-pub mod methods;
+pub mod genai;
+pub mod models;
+pub mod traits;
 pub mod types;
