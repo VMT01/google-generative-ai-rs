@@ -1,8 +1,10 @@
-use anyhow::Result;
-
 use super::{
-    models::{generative_models::GenerativeModel, list_models},
-    types::{model::ModelParams, requests::RequestOptions, responses::ListModelResponse},
+    models::{generative_models::GenerativeModel, get_model_info, get_model_list},
+    types::{
+        model::{Model, ModelParams},
+        requests::RequestOptions,
+        responses::ListModelResponse,
+    },
 };
 
 /// Top-level class for this SDK
@@ -19,8 +21,16 @@ impl GoogleGenerativeAI {
     pub async fn get_model_list(
         &self,
         request_options: Option<RequestOptions>,
-    ) -> Result<ListModelResponse> {
-        list_models(self.api_key.clone(), request_options).await
+    ) -> Result<ListModelResponse, reqwest::Error> {
+        get_model_list(self.api_key.clone(), request_options).await
+    }
+
+    pub async fn get_model_info(
+        &self,
+        model: String,
+        request_options: Option<RequestOptions>,
+    ) -> Result<Model, reqwest::Error> {
+        get_model_info(self.api_key.clone(), model, request_options).await
     }
 
     /// Gets a GenerativeModel instance for the provided model name.
@@ -39,6 +49,19 @@ async fn test_get_model_list() {
     let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
 
     let model_list = GoogleGenerativeAI::new(api_key).get_model_list(None).await;
+    if let Err(err) = model_list {
+        panic!("{err}");
+    }
+}
+
+#[tokio::test]
+async fn test_get_model_info() {
+    dotenvy::dotenv().ok();
+    let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
+
+    let model_list = GoogleGenerativeAI::new(api_key)
+        .get_model_info(String::from("gemini-pro"), None)
+        .await;
     if let Err(err) = model_list {
         panic!("{err}");
     }
