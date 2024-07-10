@@ -1,5 +1,6 @@
 use super::{
     content_types::Content,
+    model::Model,
     safety_types::{HarmCategory, HarmProbability},
 };
 
@@ -175,4 +176,9 @@ pub struct UsageMetadata {
 
     /// Number of tokens in the cached part of the prompt, i.e. in the cached content.
     pub cached_content_token_count: Option<u32>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ListModelResponse {
+    pub models: Vec<Model>,
 }

@@ -98,7 +98,7 @@ impl GenerativeModel {
             .send()
             .await?;
 
-        Ok(response.json().await.unwrap())
+        Ok(response.json().await?)
     }
 
     /// A multipurpose function to generate responses from the model.

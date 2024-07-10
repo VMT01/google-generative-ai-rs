@@ -1,6 +1,8 @@
+use anyhow::Result;
+
 use super::{
-    models::generative_models::GenerativeModel,
-    types::{model::ModelParams, requests::RequestOptions},
+    models::{generative_models::GenerativeModel, list_models},
+    types::{model::ModelParams, requests::RequestOptions, responses::ListModelResponse},
 };
 
 /// Top-level class for this SDK
@@ -14,6 +16,13 @@ impl GoogleGenerativeAI {
         Self { api_key }
     }
 
+    pub async fn get_model_list(
+        &self,
+        request_options: Option<RequestOptions>,
+    ) -> Result<ListModelResponse> {
+        list_models(self.api_key.clone(), request_options).await
+    }
+
     /// Gets a GenerativeModel instance for the provided model name.
     pub fn get_generative_model(
         &self,
@@ -25,17 +34,30 @@ impl GoogleGenerativeAI {
 }
 
 #[tokio::test]
+async fn test_get_model_list() {
+    dotenvy::dotenv().ok();
+    let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
+
+    let model_list = GoogleGenerativeAI::new(api_key).get_model_list(None).await;
+    if let Err(err) = model_list {
+        panic!("{err}");
+    }
+}
+
+#[tokio::test]
 async fn test_construct_google_genai() {
     dotenvy::dotenv().ok();
     let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
 
     let genai = GoogleGenerativeAI::new(api_key)
         .get_generative_model(ModelParams::new("gemini-1.5-flash"), None);
-    let _ = genai
+    let content = genai
         .generate_content(vec![crate::v1::types::content_types::Part {
             text: Some("Hello Gemini".to_string()),
             ..Default::default()
         }])
-        .await
-        .unwrap();
+        .await;
+    if let Err(err) = content {
+        panic!("{err}");
+    }
 }
