@@ -1,4 +1,6 @@
 use anyhow::Result;
+use futures_util::StreamExt;
+use reqwest::Response;
 
 use crate::v1::{
     traits::Stringify,
@@ -73,7 +75,8 @@ impl GenerativeModel {
         &self,
         task: Task,
         params: GenerateContentRequest,
-    ) -> Result<GenerateContentResponse> {
+        stream: bool,
+    ) -> Result<Response> {
         let api_version = self
             .request_options
             .api_version
@@ -81,16 +84,19 @@ impl GenerativeModel {
             .map(|v| v.to_str())
             .unwrap_or_default();
         let base_url = self.request_options.base_url.as_deref().unwrap_or_default();
-        let url = format!(
-            "{base_url}/{api_version}/{model}:{task}?key={api_key}",
-            base_url = base_url,
-            api_version = api_version,
-            model = self.model,
-            task = task.to_str(),
-            api_key = self.api_key
+        let mut url = format!(
+            "{}/{}/{}:{}?key={}",
+            base_url,
+            api_version,
+            self.model,
+            task.to_str(),
+            self.api_key,
         );
-        let body = serde_json::to_string(&params)?;
+        if stream {
+            url.push_str("&alt=sse");
+        }
 
+        let body = serde_json::to_string(&params)?;
         let response = reqwest::Client::new()
             .post(&url)
             .header("content-type", "application/json")
@@ -98,7 +104,7 @@ impl GenerativeModel {
             .send()
             .await?;
 
-        Ok(response.json().await?)
+        Ok(response)
     }
 
     /// A multipurpose function to generate responses from the model.
@@ -118,9 +124,30 @@ impl GenerativeModel {
     ///         ..Default::default()
     ///     }]);
     /// ```
-    pub async fn generate_content(&self, request: Vec<Part>) -> Result<GenerateContentResponse> {
-        let content = self._prepare_request(request);
-        self._make_model_request(Task::GenerateContent, content)
-            .await
+    pub async fn generate_content(&self, requests: Vec<Part>) -> Result<GenerateContentResponse> {
+        let content = self._prepare_request(requests);
+        let response = self
+            ._make_model_request(Task::GenerateContent, content, false)
+            .await?;
+        let content_response = response.json().await?;
+        Ok(content_response)
+    }
+
+    pub async fn generate_content_stream(&self, requests: Vec<Part>) -> Result<()> {
+        let content = self._prepare_request(requests);
+        let response = self
+            ._make_model_request(Task::GenerateContent, content, true)
+            .await?;
+
+        let mut stream = response.bytes_stream();
+        while let Some(item) = stream.next().await {
+            let item = item?;
+            let str = std::str::from_utf8(&item)?;
+            for p in str.split("\n\n") {
+                dbg!(p);
+            }
+        }
+
+        Ok(())
     }
 }

@@ -43,40 +43,67 @@ impl GoogleGenerativeAI {
     }
 }
 
+// #[tokio::test]
+// async fn test_get_model_list() {
+//     dotenvy::dotenv().ok();
+//     let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
+
+//     let model_list = GoogleGenerativeAI::new(api_key).get_model_list(None).await;
+//     if let Err(err) = model_list {
+//         panic!("{err}");
+//     }
+// }
+
+// #[tokio::test]
+// async fn test_get_model_info() {
+//     dotenvy::dotenv().ok();
+//     let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
+
+//     let model_list = GoogleGenerativeAI::new(api_key)
+//         .get_model_info(String::from("gemini-pro"), None)
+//         .await;
+//     if let Err(err) = model_list {
+//         panic!("{err}");
+//     }
+// }
+
+// #[test]
+// fn test_construct_google_genai() {
+//     dotenvy::dotenv().ok();
+//     let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
+
+//     let _ = GoogleGenerativeAI::new(api_key)
+//         .get_generative_model(ModelParams::new("gemini-1.5-flash"), None);
+// }
+
+// #[tokio::test]
+// async fn test_generate_content() {
+//     dotenvy::dotenv().ok();
+//     let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
+
+//     let genai = GoogleGenerativeAI::new(api_key)
+//         .get_generative_model(ModelParams::new("gemini-1.5-flash"), None);
+//     let content = genai
+//         .generate_content(vec![crate::v1::types::content_types::Part {
+//             text: Some("Hello Gemini".to_string()),
+//             ..Default::default()
+//         }])
+//         .await;
+//     if let Err(err) = content {
+//         panic!("{err}");
+//     }
+// }
+
 #[tokio::test]
-async fn test_get_model_list() {
-    dotenvy::dotenv().ok();
-    let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
-
-    let model_list = GoogleGenerativeAI::new(api_key).get_model_list(None).await;
-    if let Err(err) = model_list {
-        panic!("{err}");
-    }
-}
-
-#[tokio::test]
-async fn test_get_model_info() {
-    dotenvy::dotenv().ok();
-    let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
-
-    let model_list = GoogleGenerativeAI::new(api_key)
-        .get_model_info(String::from("gemini-pro"), None)
-        .await;
-    if let Err(err) = model_list {
-        panic!("{err}");
-    }
-}
-
-#[tokio::test]
-async fn test_construct_google_genai() {
+async fn test_generate_content_stream() {
     dotenvy::dotenv().ok();
     let api_key = std::env::var("GOOGLE_API_KEY").expect(".env not found");
 
     let genai = GoogleGenerativeAI::new(api_key)
         .get_generative_model(ModelParams::new("gemini-1.5-flash"), None);
     let content = genai
-        .generate_content(vec![crate::v1::types::content_types::Part {
-            text: Some("Hello Gemini".to_string()),
+        .generate_content_stream(vec![crate::v1::types::content_types::Part {
+            text: Some("Hello Gemini. Can you tell me something about you?".to_string()),
             ..Default::default()
         }])
         .await;

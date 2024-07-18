@@ -6,6 +6,7 @@ use super::{
 };
 
 /// Params passed to [GoogleGenerativeAI::get_generative_model][crate::v1::genai::GoogleGenerativeAI::get_generative_model]
+#[derive(Debug, Default)]
 pub struct ModelParams {
     /// The name of the model to query.
     pub model: String,

@@ -2,7 +2,7 @@ use super::schema::Schema as ResponseSchema;
 
 /// GenerationConfig is configuration options for model generation and outputs.
 /// Not all parameters may be configurable for every model.
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Default, Clone, serde::Serialize)]
 pub struct GenerationConfig {
     /// Number of generated responses to return.
     pub candidate_count: Option<u32>,
